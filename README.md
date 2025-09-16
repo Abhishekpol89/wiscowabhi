@@ -1,28 +1,42 @@
-# Cow wisdom web server
+# Wisecow Kubernetes Deployment
 
-## Prerequisites
+This project demonstrates the containerization and deployment of the **Wisecow application** into a Kubernetes environment, secured with TLS and automated using a CI/CD pipeline.
 
-```
-sudo apt install fortune-mod cowsay -y
-```
+---
 
-## How to use?
+## Steps Completed
+- Set up EC2 instance (Amazon Linux 2023) and installed `kubectl`, `docker`, `minikube`, and `helm`.
+- Cloned Wisecow repository, built Docker image, and pushed it to Amazon ECR (public).
+- Created Kubernetes manifests for Deployment, Service, and Ingress, and applied them.
+- Installed NGINX Ingress Controller with Helm and verified successful installation.
+- Exposed Wisecow service as NodePort and tested using:
+  ```bash
+  curl -H "Host: wisecow.local" http://192..49.2168
 
-1. Run `./wisecow.sh`
-2. Point the browser to server port (default 4499)
+  Issues Faced
 
-## What to expect?
-![wisecow](https://github.com/nyrahul/wisecow/assets/9133227/8d6bfde3-4a5a-480e-8d55-3fef60300d98)
+Ingress not accessible via browser even after updating Security Groups (Minikube ingress works locally, needs LoadBalancer on EC2).
 
-# Problem Statement
-Deploy the wisecow application as a k8s app
+Wisecow service only accessible internally via NodePort/ClusterIP, not directly through EC2 public IP.
 
-## Requirement
-1. Create Dockerfile for the image and corresponding k8s manifest to deploy in k8s env. The wisecow service should be exposed as k8s service.
-2. Github action for creating new image when changes are made to this repo
-3. [Challenge goal]: Enable secure TLS communication for the wisecow app.
+Next Steps
 
-## Expected Artifacts
-1. Github repo containing the app with corresponding dockerfile, k8s manifest, any other artifacts needed.
-2. Github repo with corresponding github action.
-3. Github repo should be kept private and the access should be enabled for following github IDs: nyrahul
+Configure LoadBalancer Ingress for external access on EC2.
+
+Enable TLS using cert-manager or manual certificates.
+
+Automate pipeline with GitHub Actions or Jenkins:
+
+Build Docker image → Push to ECR → Deploy to Kubernetes.
+
+End Goal
+
+Containerized Wisecow application.
+
+Kubernetes deployment with CI/CD.
+
+TLS-secured ingress for secure communication.
+
+Public GitHub repository for transparency.
+
+
