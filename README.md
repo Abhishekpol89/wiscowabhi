@@ -1,42 +1,93 @@
-# Wisecow Kubernetes Deployment
+🐮 Wisecow on Kubernetes with CI/CD & TLS
+📌 Project Overview
 
-This project demonstrates the containerization and deployment of the **Wisecow application** into a Kubernetes environment, secured with TLS and automated using a CI/CD pipeline.
+The goal of this project was to containerize and deploy the Wisecow application into a Kubernetes cluster, expose it via Ingress, secure it with TLS certificates, and prepare it for CI/CD automation.
 
----
+⚙️ Steps Performed
+1. Containerization
 
-## Steps Completed
-- Set up EC2 instance (Amazon Linux 2023) and installed `kubectl`, `docker`, `minikube`, and `helm`.
-- Cloned Wisecow repository, built Docker image, and pushed it to Amazon ECR (public).
-- Created Kubernetes manifests for Deployment, Service, and Ingress, and applied them.
-- Installed NGINX Ingress Controller with Helm and verified successful installation.
-- Exposed Wisecow service as NodePort and tested using:
-  ```bash
-  curl -H "Host: wisecow.local" http://192..49.2168
+Created a Dockerfile for Wisecow app.
 
-  Issues Faced
+Built and pushed the image to the registry.
+Commands used:
+docker build -t <your-dockerhub-user>/wisecow .
+docker push <your-dockerhub-user>/wisecow
 
-Ingress not accessible via browser even after updating Security Groups (Minikube ingress works locally, needs LoadBalancer on EC2).
+2. Kubernetes Deployment & Service
 
-Wisecow service only accessible internally via NodePort/ClusterIP, not directly through EC2 public IP.
+Created wisecow-deployment.yaml for deploying pods.
 
-Next Steps
+Created wisecow-service.yaml of type NodePort to expose the app.
+Applied with:
+kubectl apply -f wisecow-deployment.yaml
+kubectl apply -f wisecow-service.yaml
 
-Configure LoadBalancer Ingress for external access on EC2.
+Verified pods with:
+kubectl get pods
 
-Enable TLS using cert-manager or manual certificates.
+Verified service with:
+kubectl get svc
 
-Automate pipeline with GitHub Actions or Jenkins:
+3. Ingress Setup
 
-Build Docker image → Push to ECR → Deploy to Kubernetes.
+Installed NGINX Ingress Controller in ingress-nginx namespace.
 
-End Goal
+Created wisecow-ingress.yaml to route traffic from wisecow.local → wisecow-service.
+Applied with:
+kubectl apply -f wisecow-ingress.yaml
 
-Containerized Wisecow application.
+4. Hosts File Update
 
-Kubernetes deployment with CI/CD.
+Added entry to /etc/hosts so wisecow.local resolves to Minikube IP:
+192.168.49.2 wisecow.local
 
-TLS-secured ingress for secure communication.
+5. TLS Configuration
 
-Public GitHub repository for transparency.
+Generated self-signed certificate:
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout wisecow.local.key -out wisecow.local.crt -subj "/CN=wisecow.local/O=wisecow.local"
 
+Created Kubernetes TLS secret:
+kubectl create secret tls wisecow-tls --key wisecow.local.key --cert wisecow.local.crt
 
+Updated wisecow-ingress.yaml to use TLS.
+
+🛑 Issues Faced & Fixes
+
+Pod not accessible initially
+
+Cause: Service misconfigured.
+
+Fix: Corrected NodePort and matched targetPort.
+
+Ingress not routing
+
+Cause: Missing hosts entry (/etc/hosts not updated).
+
+Fix: Added 192.168.49.2 wisecow.local.
+
+Curl to service failing
+
+Cause: Tried accessing service from outside cluster.
+
+Fix: Tested with kubectl run debug --image=curlimages/curl.
+
+Git push rejected
+
+Cause: Remote repo had commits not in local.
+
+Fix: Used git pull --rebase before pushing again.
+
+🚀 End Goal
+
+✅ Wisecow containerized and running on Kubernetes.
+
+✅ Exposed via NodePort and Ingress.
+
+✅ Secured with TLS.
+
+🔜 Next: Setup GitHub Actions / Jenkins for automated CI/CD.
+
+📝 Author
+
+Abhishek Pol
+DevOps Enthusiast | Cloud & Kubernetes Learner
